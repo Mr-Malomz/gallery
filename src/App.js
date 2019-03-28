@@ -15,6 +15,7 @@ class App extends Component {
        recipes: recipes,
        photos: '',
        url: `https://api.unsplash.com/search/photos/?client_id=1c5a749630f33aa390c741ad79be0c356b81bc65be2be5766b766e2c3035da2f&query=`,
+       search_url:`https://api.unsplash.com/search/photos/?client_id=1c5a749630f33aa390c741ad79be0c356b81bc65be2be5766b766e2c3035da2f&query=`,
        error: '',
     }
   }
@@ -31,9 +32,15 @@ class App extends Component {
       const data = await fetch(this.state.url)
       const jsonData = await data.json()
       console.log(jsonData.results)
-      this.setState(()=>{
-        return{photos: jsonData.results}
-      })
+      if(jsonData.results.length === 0){
+        this.setState(()=>{
+          return({error: 'Opps!!,  your search did not return any picture'})
+        })
+      }else {
+        this.setState(()=>{
+          return{photos: jsonData.results}
+        })
+      }
     } catch (error) {
       console.log(error)
     }
@@ -45,15 +52,15 @@ class App extends Component {
 
   handleSubmit = e => {
     e.preventDefault()
-    const {value, url } = this.state
+    const {value, search_url } = this.state
     this.setState(() => {
-      return {url: `${url}${value}`, value: ''} //second empty value returns the input field back to null
+      return {url: `${search_url}${value}`, value: ''} //second empty value returns the input field back to null and the search url is used independently of the main url
     }, () => this.getPhotos())
     
   }
 
   render() {
-    const {photos, value} = this.state
+    const {photos, value, error} = this.state
     
     return (
       <div className="container-fluid">
@@ -63,11 +70,9 @@ class App extends Component {
           handleSubmit = {this.handleSubmit}
         />
         <div className="container">
-          <div className="row">
-            
-              {Object.values(photos).map((photo) => { //convert object to an array
+          <div className="row"> 
+              {error ? <h1 className="text-danger text-center">{error}</h1> : Object.values(photos).map((photo) => { //convert object to an array
                 return (
-                  
                     <Body 
                       key = {photo.id}
                       img = {photo.urls.regular}
